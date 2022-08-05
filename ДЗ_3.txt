@@ -1,0 +1,47 @@
+1. ALTER TABLE streams RENAME COLUMN start_date TO started_at;
+2. ALTER TABLE streams ADD COLUMN finished_at TEXT;
+3.1 INSERT INTO teachers (name, surname, email) VALUES
+   ...> ('Николай', 'Савельев', 'saveliev.n@mail.ru');
+   ...> ('Наталья', 'Петрова', 'petrova.n@yandex.ru'),
+   ...> ('Елена', 'Малышева', 'malisheva.e@google.com');
+
+3.2. INSERT INTO courses (name) VALUES
+   ...> ('Базы данных'),('Основы Python'),('Linux. Рабочая станция');
+
+3.3.  INSERT INTO streams (course_id, number, started_at, students_amount) VALUES
+   ...> (3, 165, '18.08.2020', 34),
+   ...> (2, 178, '02.10.2020', 37),
+   ...> (1, 203, '12.11.2020', 35),
+   ...> (1, 210, '03.12.2020', 41);
+
+3.4.  INSERT INTO grades (teacher_id, stream_id, perfomance) VALUES
+   ...> (3, 1, 4.7),
+   ...> (2, 2, 4.9),
+   ...> (1, 3, 4.8),
+   ...> (1, 4, 4.9);
+
+4.Нашел таке решение
+
+sqlite> PRAGMA foreign_keys=off;
+sqlite> BEGIN TRANSACTION;
+sqlite> ALTER TABLE grades RENAME TO grades_old;
+sqlite> CREATE TABLE grades (
+   ...> teacher_id INTEGER NOT NULL,
+   ...> stream_id REAL NOT NULL,
+   ...> perfomance REAL NOT NULL,
+   ...> PRIMARY KEY (teacher_id, stream_id),
+   ...> FOREIGN KEY (teacher_id) REFERENCES teachers (id),
+   ...> FOREIGN KEY (stream_id) REFERENCES streams (id)
+   ...> );
+sqlite> INSERT INTO grades (teacher_id, stream_id, perfomance)
+   ...> SELECT teacher_id, stream_id, perfomance
+   ...> FROM grades_old;
+sqlite> COMMIT;
+sqlite> PRAGMA foreign_key=on;
+sqlite> .table
+courses     grades      grades_old  streams     teachers
+sqlite> select * FROM grades;
+3|1.0|4.7
+2|2.0|4.9
+1|3.0|4.8
+1|4.0|4.9
